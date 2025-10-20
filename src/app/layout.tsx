@@ -1,18 +1,17 @@
-import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-export const metadata: Metadata = {
-  title: "My SaaS App",
-  description: "Learning Next.js + Supabase",
+export const metadata = {
+  title: "My App",
+  description: "Example app with Supabase Auth",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-100">
+      <body>
         <Navbar />
-        <main className="p-4">{children}</main>
+        <main className="p-6">{children}</main>
       </body>
     </html>
   );
