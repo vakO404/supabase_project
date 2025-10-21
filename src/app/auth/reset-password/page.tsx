@@ -9,6 +9,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
+  const [showCaptcha, setShowCaptcha] = useState(false); // show captcha only on submit
   const captchaRef = useRef<HCaptcha | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,6 +17,12 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!showCaptcha) {
+      // First click, show the captcha
+      setShowCaptcha(true);
+      return;
+    }
 
     if (!captchaToken) {
       setError("Please complete the CAPTCHA first.");
@@ -26,17 +33,18 @@ export default function ResetPasswordPage() {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/update-password`,
+      captchaToken, // send captcha to Supabase
     });
 
     if (error) {
       setError(error.message);
     } else {
       setSuccess("Check your email for a password reset link.");
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken("");
+      setShowCaptcha(false);
     }
 
-
-    captchaRef.current?.resetCaptcha();
-    setCaptchaToken("");
     setLoading(false);
   };
 
@@ -55,17 +63,19 @@ export default function ResetPasswordPage() {
             required
           />
 
-          <HCaptcha
-            ref={captchaRef}
-            sitekey="b4862640-d3ce-4d98-84ae-c3f6d164bcfe"
-            onVerify={(token) => setCaptchaToken(token)}
-          />
+          {showCaptcha && (
+            <HCaptcha
+              ref={captchaRef}
+              sitekey="b4862640-d3ce-4d98-84ae-c3f6d164bcfe"
+              onVerify={(token) => setCaptchaToken(token)}
+            />
+          )}
 
           <button
             type="submit"
-            disabled={loading || !captchaToken}
+            disabled={loading}
             className={`p-2 rounded text-white ${
-              loading || !captchaToken
+              loading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600"
             }`}

@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 export default function Home() {
 return(
     <div>
-    <h1>Hello! its Dashboard</h1>
+    <h1>Hello! this is about page</h1>
 </div>
 )    
 
