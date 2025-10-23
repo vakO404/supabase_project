@@ -18,7 +18,7 @@ export default function UpdatePassword() {
     if (!accessToken) return;
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password }, accessToken);
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setMessage(`Error: ${error.message}`);
