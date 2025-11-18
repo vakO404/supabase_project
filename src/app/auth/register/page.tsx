@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
@@ -9,6 +10,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,10 @@ export default function RegisterPage() {
         password,
         options: {
           captchaToken,
-          data: { full_name: fullName },
+          data: {
+            full_name: fullName,
+            birth_date: birthDate,
+          },
         },
       });
 
@@ -50,8 +55,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // ✅ Profile creation is handled by Supabase trigger
-      router.push("/auth/login"); // client-side redirect
+      // Successful signup → redirect to login
+      router.push("/auth/login");
     } catch (err: any) {
       setError(err.message || "Registration failed");
       setLoading(false);
@@ -69,6 +74,14 @@ export default function RegisterPage() {
             placeholder="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            className="p-2 border rounded text-black"
+            required
+          />
+
+          <input
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
             className="p-2 border rounded text-black"
             required
           />

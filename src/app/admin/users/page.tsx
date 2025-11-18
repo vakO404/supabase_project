@@ -6,6 +6,8 @@ type UserProfile = {
   id: string;
   email: string | null;
   role: string | null;
+  full_name : string | null;
+  birth_date : string | null;
 };
 
 export default function UserManagementPage() {
@@ -89,6 +91,9 @@ export default function UserManagementPage() {
             <tr>
               <th className="p-2 border-b text-black">Email</th>
               <th className="p-2 border-b text-black">Role</th>
+              <th className="p-2 border-b text-black">Name</th>
+              <th className="p-2 border-b text-black">Birth Date</th>
+
               <th className="p-2 border-b text-center text-black">Actions</th>
             </tr>
           </thead>
@@ -97,6 +102,10 @@ export default function UserManagementPage() {
               <tr key={user.id} className="border-b hover:bg-gray-600">
                 <td className="p-2">{user.email || "No email"}</td>
                 <td className="p-2">{user.role || "user"}</td>
+                <td className="p-2">{user.full_name || "user"}</td>
+
+                <td className="p-2">{user.birth_date || "user"}</td>
+
                 <td className="p-2 text-center">
                   {user.role !== "admin" && (
                     <button

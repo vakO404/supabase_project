@@ -7,6 +7,7 @@ type Profile = {
   full_name: string | null;
   email: string | null;
   role: string | null;
+  birth_date: string | null;
 };
 
 export default function ProfilePage() {
@@ -14,162 +15,132 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [fullname, setFullname] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [message, setMessage] = useState("");
 
-  // Fetch profile on load
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
-
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
-        console.error("Error fetching user:", userError);
+        setMessage("Error fetching user");
         setLoading(false);
         return;
       }
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, email, role")
+        .select("full_name, email, role, birth_date")
         .eq("id", user.id)
         .single();
 
-      if (error) console.error("Error fetching profile:", error);
-      else {
+      if (error) {
+        console.error("Error fetching profile:", error);
+        setMessage("Error fetching profile");
+      } else if (data) {
         setProfile(data);
         setFullname(data.full_name || "");
+        setBirthDate(data.birth_date || "");
       }
-
       setLoading(false);
     };
 
     fetchProfile();
   }, []);
 
-  // Save fullname
   const handleSave = async () => {
     setMessage("");
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      setMessage("❌ You must be logged in to update your profile");
+      setMessage("❌ You must be logged in");
       return;
     }
 
-    const res = await fetch("/api/update-fullname", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ fullname }),
-    });
+    try {
+      const res = await fetch("/api/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ fullname, birthDate }),
+      });
 
-    const result = await res.json();
+      let result;
+      try {
+        result = await res.json();
+      } catch {
+        result = { error: "Invalid server response" };
+      }
 
-    if (res.ok) {
-      setMessage("✅ Fullname updated successfully!");
-      setEditing(false);
-      setProfile((prev) => (prev ? { ...prev, full_name: fullname } : prev));
-    } else {
-      setMessage(`❌ ${result.error || "Update failed"}`);
+      if (res.ok && result.success) {
+        setMessage("✅ Profile updated successfully!");
+        setProfile(prev => prev ? { ...prev, full_name: fullname, birth_date: birthDate } : prev);
+        setEditing(false);
+      } else {
+        setMessage(`❌ ${result.error || "Update failed"}`);
+      }
+    } catch (err: any) {
+      setMessage(`❌ ${err.message || "Update failed"}`);
     }
   };
 
-  if (loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-
-  if (!profile)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">Profile not found</p>
-      </div>
-    );
+  if (loading) return <p className="text-center mt-20">Loading...</p>;
+  if (!profile) return <p className="text-center mt-20 text-red-500">Profile not found</p>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="p-6 bg-white rounded shadow w-96">
         <h1 className="text-2xl font-bold mb-4 text-black">Your Profile</h1>
 
-        {/* Fullname section */}
+        {/* Fullname */}
         <div className="mb-4">
           <label className="block text-black font-medium mb-1">Full Name</label>
           {editing ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={fullname}
-                onChange={(e) => setFullname(e.target.value)}
-                className="w-full border p-2 rounded text-black"
-                placeholder="Enter new fullname"
-              />
-              <button
-                onClick={handleSave}
-                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setEditing(false);
-                  setFullname(profile.full_name || "");
-                }}
-                className="text-black-600 hover:underline"
-              >
-                Cancel
-              </button>
-            </div>
+            <input
+              type="text"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              className="w-full border p-2 rounded text-black mb-2"
+            />
           ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-black">{profile.full_name || "Not set"}</p>
-              <button
-                onClick={() => setEditing(true)}
-                className="text-blue-600 hover:underline text-black"
-              >
-                Change
-              </button>
-            </div>
+            <p className="text-black">{profile.full_name || "Not set"}</p>
+          )}
+        </div>
+
+        {/* Birth Date */}
+        <div className="mb-4">
+          <label className="block text-black font-medium mb-1">Birth Date</label>
+          {editing ? (
+            <input
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              className="w-full border p-2 rounded text-black mb-1"
+            />
+          ) : (
+            <p className="text-black">{profile.birth_date || "Not set"}</p>
           )}
         </div>
 
         {/* Email */}
-        <p className="text-black">
-          <strong>Email:</strong> {profile.email}
-        </p>
+        <p className="text-black"><strong>Email:</strong> {profile.email}</p>
+        <p className="text-black"><strong>Role:</strong> {profile.role || "User"}</p>
 
-        {/* Role */}
-        <p className="text-black">
-          <strong>Role:</strong> {profile.role || "User"}
-        </p>
-
-        {/* Status message */}
         {message && (
-          <p
-            className={`mt-2 text-sm ${
-              message.startsWith("✅") ? "text-green-600" : "text-red-600"
-            }`}
-          >
+          <p className={`mt-2 text-sm ${message.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
             {message}
           </p>
         )}
 
-        <a
-          href="/"
-          className="block text-center mt-4 text-blue-600 hover:text-blue-800"
-        >
-          ← Back to Home
-        </a>
+        {editing ? (
+          <div className="flex gap-2 mt-4">
+            <button onClick={handleSave} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Save</button>
+            <button onClick={() => { setEditing(false); setFullname(profile.full_name || ""); setBirthDate(profile.birth_date || ""); }} className="px-3 py-1 border rounded hover:bg-gray-200">Cancel</button>
+          </div>
+        ) : (
+          <button onClick={() => setEditing(true)} className="mt-4 text-blue-600 hover:underline">Edit Profile</button>
+        )}
       </div>
     </div>
   );

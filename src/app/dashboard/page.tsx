@@ -1,13 +1,11 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import PostsPage from "../posts/page";
+export default function dashboard() {
 
-export default function Home() {
-return(
-    <div>
-    <h1>Hello! its Dashboard</h1>
-</div>
-)    
-
+  return (
+    PostsPage()
+  );
 }
-
-

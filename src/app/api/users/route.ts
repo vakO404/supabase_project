@@ -6,7 +6,7 @@ export async function GET() {
     // Fetch all users from profiles table
     const { data, error } = await supabaseAdmin
       .from("profiles")
-      .select("id, email, role")
+      .select("id, email, role, full_name, birth_date")
       .order("email", { ascending: true });
 
     if (error) {
