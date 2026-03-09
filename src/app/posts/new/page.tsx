@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -8,6 +8,8 @@ export default function NewPostPage() {
   const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
@@ -96,9 +98,11 @@ export default function NewPostPage() {
           className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
         >
           Create Post
+          
         </button>
-      </form>
 
+      </form>
+    
       {message && (
         <p
           className={`mt-3 text-sm ${
@@ -106,8 +110,13 @@ export default function NewPostPage() {
           }`}
         >
           {message}
-        </p>
+         </p>
+
+
       )}
+      
     </div>
+    
   );
+
 }
